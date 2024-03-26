@@ -1,7 +1,10 @@
-package com.svj.entity;
+package com.svj.dto;
 
+import com.svj.entity.Order;
 import com.svj.validation.PaymentValidation;
-import jakarta.persistence.*;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
@@ -9,26 +12,25 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.jackson.Jacksonized;
 
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "ORDERS_TBL")
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Jacksonized
+@Data
 @Builder
-public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class OrderRequestDTO {
     private int id;
+    @NotBlank
     private String name;
+    @NotBlank
     private String category;
+    @Positive
     private double price;
     private LocalDate purchaseDate;
     private String orderId;
+    @NotEmpty
     private int userId;
+    @PaymentValidation
     private String paymentMode;
 }

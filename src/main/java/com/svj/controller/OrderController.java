@@ -1,8 +1,10 @@
 package com.svj.controller;
 
+import com.svj.dto.OrderRequestDTO;
 import com.svj.dto.OrderResponseDTO;
 import com.svj.entity.Order;
 import com.svj.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,7 +21,7 @@ public class OrderController {
     // logging
     // Exception handling
     @PostMapping
-    public String placenewOrder(@RequestBody Order order){
+    public String placeNewOrder(@RequestBody @Valid OrderRequestDTO order){
         return service.placeOrder(order);
     }
 

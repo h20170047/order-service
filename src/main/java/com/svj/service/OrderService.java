@@ -2,6 +2,7 @@ package com.svj.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.svj.dto.OrderRequestDTO;
 import com.svj.dto.OrderResponseDTO;
 import com.svj.dto.PaymentDTO;
 import com.svj.dto.UserDTO;
@@ -13,8 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.UUID;
+
+import static com.svj.utils.AppUtils.mapDTOToEntity;
 
 @Service
 public class OrderService {
@@ -36,19 +38,20 @@ public class OrderService {
     }
 
     // place an order
-    public String placeOrder(Order order){
+    public String placeOrder(OrderRequestDTO orderReq){
+        Order order= mapDTOToEntity(orderReq);
         // save in order-service db
-        order.setPurchaseDate(LocalDate.now());
-//        order.setPurchaseDate(new Date());
-        order.setOrderId(UUID.randomUUID().toString().split("-")[0]);
-        repository.save(order);
+        orderReq.setPurchaseDate(LocalDate.now());
+        orderReq.setOrderId(UUID.randomUUID().toString().split("-")[0]);
+        Order mappedOrder = mapDTOToEntity(orderReq);
+        Order savedOrder = repository.save(mappedOrder);
         // send it to payment service using kafka
         try {
-            kafkaTemplate.send(topicName, objectMapper.writeValueAsString(order));
+            kafkaTemplate.send(topicName, objectMapper.writeValueAsString(savedOrder));
         } catch (JsonProcessingException e) {
             e.printStackTrace(); // user log.error
         }
-        return "Your order with order ID ( "+ order.getOrderId()+" ) has been place. We will notify once it is confirmed.";
+        return "Your order with order ID ( "+ orderReq.getOrderId()+" ) has been place. We will notify once it is confirmed.";
     }
 
     // get order
