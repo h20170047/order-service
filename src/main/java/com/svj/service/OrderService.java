@@ -59,8 +59,8 @@ public class OrderService {
         // order details- own DB
         Order order= repository.findByOrderId(orderId);
         // payment and user details - from resp services
-        String SERVICE_PAYMENTS_URL = "http://localhost:9292/payments/";
-        String SERVICE_USERS_URL = "http://localhost:9393/users/";
+        String SERVICE_PAYMENTS_URL = "http://PAYMENT-SERVICE/payments/";
+        String SERVICE_USERS_URL = "http://USER-SERVICE/users/";
         PaymentDTO paymentDTO = restTemplate.getForObject(SERVICE_PAYMENTS_URL + orderId, PaymentDTO.class);
         UserDTO userDTO= restTemplate.getForObject(SERVICE_USERS_URL+order.getUserId(), UserDTO.class);
         return OrderResponseDTO.builder()
