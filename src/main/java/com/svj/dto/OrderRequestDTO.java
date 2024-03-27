@@ -29,7 +29,7 @@ public class OrderRequestDTO {
     private double price;
     private LocalDate purchaseDate;
     private String orderId;
-    @NotEmpty
+    @Positive
     private int userId;
     @PaymentValidation
     private String paymentMode;
