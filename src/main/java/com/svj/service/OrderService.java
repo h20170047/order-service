@@ -8,7 +8,9 @@ import com.svj.dto.PaymentDTO;
 import com.svj.dto.UserDTO;
 import com.svj.entity.Order;
 import com.svj.repository.OrderRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -21,7 +23,9 @@ import static com.svj.utils.AppUtils.mapDTOToEntity;
 @Service
 public class OrderService {
 
+    public static final String ORDER_SERVICE = "orderService";
     private OrderRepository repository;
+    @Lazy
     private RestTemplate restTemplate;
     private KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -55,6 +59,7 @@ public class OrderService {
     }
 
     // get order
+    @CircuitBreaker(name = ORDER_SERVICE, fallbackMethod = "getOrderDetails")
     public OrderResponseDTO getOrder(String orderId){
         // order details- own DB
         Order order= repository.findByOrderId(orderId);
@@ -68,6 +73,11 @@ public class OrderService {
                 .paymentResponse(paymentDTO)
                 .userInfo(userDTO)
                 .build();
+    }
+
+    public OrderResponseDTO getOrderDetails(Exception ex){
+        // you can call a DB/ invoke external api
+        return new OrderResponseDTO("FAILED", null, null, null);
     }
 
 }
