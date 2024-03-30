@@ -10,6 +10,7 @@ import com.svj.entity.Order;
 import com.svj.repository.OrderRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import static com.svj.utils.AppUtils.mapDTOToEntity;
 
 @Service
+@RefreshScope
 public class OrderService {
 
     public static final String ORDER_SERVICE = "orderService";
@@ -31,6 +33,14 @@ public class OrderService {
 
     @Value("${order.producer.topic.name}")
     private String topicName;
+
+    @Value("${microservices.endpoints.payment-service.fetchPaymentById}")
+    private String fetchPaymentUri;
+    @Value("${microservices.endpoints.user-service.fetchUserById}")
+    private String fetchUserUri;
+
+    @Value("${test.input}")
+    private String testInput;
 
     private ObjectMapper objectMapper;
 
@@ -61,13 +71,15 @@ public class OrderService {
     // get order
     @CircuitBreaker(name = ORDER_SERVICE, fallbackMethod = "getOrderDetails")
     public OrderResponseDTO getOrder(String orderId){
+        System.out.println("*************** Test Value is "+testInput);
+        System.out.println("FetchPaymentUri: "+fetchPaymentUri+" && FetchUserUri: "+fetchUserUri);
         // order details- own DB
         Order order= repository.findByOrderId(orderId);
         // payment and user details - from resp services
-        String SERVICE_PAYMENTS_URL = "http://PAYMENT-SERVICE/payments/";
-        String SERVICE_USERS_URL = "http://USER-SERVICE/users/";
-        PaymentDTO paymentDTO = restTemplate.getForObject(SERVICE_PAYMENTS_URL + orderId, PaymentDTO.class);
-        UserDTO userDTO= restTemplate.getForObject(SERVICE_USERS_URL+order.getUserId(), UserDTO.class);
+//        String SERVICE_PAYMENTS_URL = "http://PAYMENT-SERVICE/payments/";
+//        String SERVICE_USERS_URL = "http://USER-SERVICE/users/";
+        PaymentDTO paymentDTO = restTemplate.getForObject(fetchPaymentUri + orderId, PaymentDTO.class);
+        UserDTO userDTO= restTemplate.getForObject(fetchUserUri+order.getUserId(), UserDTO.class);
         return OrderResponseDTO.builder()
                 .order(order)
                 .paymentResponse(paymentDTO)
