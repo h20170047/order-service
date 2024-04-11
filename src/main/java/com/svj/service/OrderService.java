@@ -11,6 +11,7 @@ import com.svj.repository.OrderRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -29,10 +30,10 @@ public class OrderService {
     private OrderRepository repository;
     @Lazy
     private RestTemplate restTemplate;
-    private KafkaTemplate<String, Object> kafkaTemplate;
+//    private KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${order.producer.topic.name}")
-    private String topicName;
+//    @Value("${order.producer.topic.name}")
+//    private String topicName;
 
     @Value("${microservices.endpoints.payment-service.fetchPaymentById}")
     private String fetchPaymentUri;
@@ -42,13 +43,16 @@ public class OrderService {
     @Value("${test.input}")
     private String testInput;
 
+    private StreamBridge streamBridge;
+
     private ObjectMapper objectMapper;
 
-    public OrderService(OrderRepository repository, KafkaTemplate kafkaTemplate, RestTemplate restTemplate, ObjectMapper objectMapper){
+    public OrderService(OrderRepository repository, RestTemplate restTemplate, ObjectMapper objectMapper, StreamBridge streamBridge){
         this.repository= repository;
         this.restTemplate= restTemplate;
-        this.kafkaTemplate= kafkaTemplate;
+//        this.kafkaTemplate= kafkaTemplate;
         this.objectMapper= objectMapper;
+        this.streamBridge= streamBridge;
     }
 
     // place an order
@@ -61,7 +65,8 @@ public class OrderService {
         Order savedOrder = repository.save(mappedOrder);
         // send it to payment service using kafka
         try {
-            kafkaTemplate.send(topicName, objectMapper.writeValueAsString(savedOrder));
+//            kafkaTemplate.send(topicName, objectMapper.writeValueAsString(savedOrder));
+            streamBridge.send("orderBinding-out-0", objectMapper.writeValueAsString(savedOrder));
         } catch (JsonProcessingException e) {
             e.printStackTrace(); // user log.error
         }

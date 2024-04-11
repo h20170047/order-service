@@ -16,6 +16,18 @@ spring:
   config:
     import: configserver:http://localhost:9595
 
+
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:29092}
+      source: orderBinding-out-0
+      bindings:
+        orderBinding-out-0:
+          destination: ecommerce-topic3
+          producer:
+            partitionCount: 1
 #eureka:
 #  client:
 #    service-url:
